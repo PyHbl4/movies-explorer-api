@@ -1,0 +1,45 @@
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
+const {
+  createUser,
+  login,
+} = require('./controllers/users');
+const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/not-found-error');
+const errorHandler = require('./middlewares/error-handler');
+const { signupValidation, signinValidation } = require('./middlewares/validation');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+
+const { PORT = 3000, DB_URL = 'mongodb://127.0.0.1:27017/moviesexplorer' } = process.env;
+const app = express();
+mongoose.connect(DB_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
+app.post('/signin', signinValidation, login);
+app.post('/signup', signupValidation, createUser);
+app.use(auth);
+app.use('/users', require('./routes/users'));
+app.use('/movies', require('./routes/movies'));
+
+app.use((req, res, next) => {
+  next(new NotFoundError('Запрашиваемая страница не найдена'));
+});
+app.use(errorLogger);
+app.use(errors());
+app.use(errorHandler);
+app.listen(PORT);
