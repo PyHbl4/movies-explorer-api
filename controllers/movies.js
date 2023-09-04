@@ -43,9 +43,10 @@ module.exports.createMovie = (req, res, next) => {
 };
 
 module.exports.getMovies = (req, res, next) => {
-  Movie.find({})
+  const owner = req.user._id;
+  Movie.find({ owner })
     .then((movies) => {
-      movies.sort((a, b) => b.createdAt - a.createdAt);
+      // movies.sort((a, b) => b.createdAt - a.createdAt);
       res.send({ data: movies });
     })
     .catch(() => next(new ServerError('Произошла ошибка на стороне сервера')));

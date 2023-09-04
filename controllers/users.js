@@ -99,6 +99,8 @@ module.exports.updateInfo = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(err.message));
+      } else if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже есть в базе'));
       } else {
         next(new ServerError(err.message));
       }

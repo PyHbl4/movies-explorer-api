@@ -4,15 +4,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const {
-  createUser,
-  login,
-} = require('./controllers/users');
-const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/not-found-error');
 const errorHandler = require('./middlewares/error-handler');
-const { signupValidation, signinValidation } = require('./middlewares/validation');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const routes = require('./routes/index');
 
 const { PORT = 3000, DB_URL = 'mongodb://127.0.0.1:27017/moviesexplorer' } = process.env;
 const app = express();
@@ -30,11 +25,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
-app.post('/signin', signinValidation, login);
-app.post('/signup', signupValidation, createUser);
-app.use(auth);
-app.use('/users', require('./routes/users'));
-app.use('/movies', require('./routes/movies'));
+app.use(routes);
 
 app.use((req, res, next) => {
   next(new NotFoundError('Запрашиваемая страница не найдена'));
